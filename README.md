@@ -212,20 +212,28 @@ RAG-Comparison-Project/
 
 ## 🚀 快速开始
 
-### 🏠 系统一（本地免费，仅33MB）
+### 🏠 系统一
+如果您使用 macOS，可以按以下步骤快速安装：
+
 ```bash
+# 1. 确保已安装 Homebrew 和 Python 3.8+
+python --version
+
+# 2. 克隆项目并设置环境
 cd system-1-local-free
+python -m venv venv
+source venv/bin/activate
 pip install -r requirements.txt
 
-# 方式一：启动Web界面
+# 3. 安装并启动 Ollama
+brew install ollama
+ollama serve &
+
+# 4. 下载模型并启动应用
+ollama pull llama3.1:8b
 streamlit run src/main.py
-
-# 方式二：启动API服务器
-python run_api.py
-
-# 方式三：运行测试
-pytest
 ```
+
 
 ### ☁️ 系统二（AWS企业）
 ```bash
