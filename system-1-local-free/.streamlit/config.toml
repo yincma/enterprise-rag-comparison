@@ -1,0 +1,26 @@
+# Streamlit配置文件 - 净化界面设置
+
+[theme]
+# 主题配置
+primaryColor = "#667eea"
+backgroundColor = "#ffffff"
+secondaryBackgroundColor = "#f0f2f6"
+textColor = "#262730"
+
+[client]
+# 客户端配置
+showErrorDetails = false
+toolbarMode = "minimal"
+
+[browser]
+# 浏览器配置  
+gatherUsageStats = false
+
+[server]
+# 服务器配置
+maxUploadSize = 100
+enableXsrfProtection = false
+
+[logger]
+# 日志配置
+level = "ERROR"

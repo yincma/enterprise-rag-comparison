@@ -15,8 +15,12 @@ from chromadb.config import Settings
 from sentence_transformers import SentenceTransformer
 
 # 本地模块
-from .utils.config import config_manager
-from .utils.helpers import measure_performance, Timer, create_directory_if_not_exists
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from utils.config import config_manager
+from utils.helpers import measure_performance, Timer, create_directory_if_not_exists
+from utils.resilience import resilient_function, resilience_manager
 
 logger = logging.getLogger(__name__)
 
@@ -185,6 +189,12 @@ class VectorStore:
         return result
     
     @measure_performance
+    @resilient_function(
+        service_name="vector_search",
+        max_attempts=3,
+        enable_circuit_breaker=True,
+        fallback_strategies=[lambda *args, **kwargs: []]
+    )
     def search(
         self, 
         query: str, 

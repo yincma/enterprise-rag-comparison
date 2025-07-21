@@ -71,16 +71,53 @@ system-1-local-free/
 
 ## 🚀 快速开始
 
+### 💻 macOS 用户一键安装
+如果您使用 macOS，可以按以下步骤快速安装：
+
+```bash
+# 1. 确保已安装 Homebrew 和 Python 3.8+
+python --version
+
+# 2. 克隆项目并设置环境
+cd system-1-local-free
+python -m venv venv
+source venv/bin/activate
+pip install -r requirements.txt
+
+# 3. 安装并启动 Ollama
+brew install ollama
+ollama serve &
+
+# 4. 下载模型并启动应用
+ollama pull llama3.1:8b
+streamlit run src/main.py
+```
+
+### 📚 详细安装步骤
+
 ### 1. 环境准备
 
+#### 前提条件（macOS 用户）
+如果您使用 macOS 且尚未安装 Homebrew，请先安装：
+```bash
+# 安装 Homebrew（如果尚未安装）
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+```
+
+#### Python 环境设置
 ```bash
 # 确保Python版本 >= 3.8
 python --version
 
 # 创建虚拟环境
 python -m venv venv
-source venv/bin/activate  # Linux/Mac
-# 或者 venv\Scripts\activate  # Windows
+
+# 激活虚拟环境
+# macOS/Linux 用户:
+source venv/bin/activate
+
+# Windows 用户:
+# venv\Scripts\activate
 ```
 
 ### 2. 安装依赖
@@ -92,21 +129,32 @@ pip install -r requirements.txt
 
 ### 3. 安装Ollama
 
+**⚠️ 请根据您的操作系统选择对应的安装方式：**
+
+#### macOS 用户（推荐使用 Homebrew）
 ```bash
-# Mac
 brew install ollama
+```
 
-# Linux
+#### Linux 用户
+```bash
 curl -fsSL https://ollama.com/install.sh | sh
+```
 
+#### Windows 用户
+下载并运行官方安装程序：https://ollama.com/download
+
+### 4. 启动Ollama并下载模型
+
+```bash
 # 启动Ollama服务
 ollama serve
 
-# 下载Llama3.1模型
+# 下载Llama3.1模型（在新终端窗口中执行）
 ollama pull llama3.1:8b
 ```
 
-### 4. 启动系统
+### 5. 启动系统
 
 ```bash
 streamlit run src/main.py
@@ -224,7 +272,11 @@ ollama pull llama3.1:70b  # 更大更强的模型
 2. **向量数据库初始化失败**
    ```bash
    # 清空数据库重新初始化
+   # macOS/Linux:
    rm -rf data/vector_db/
+   
+   # Windows:
+   # rmdir /s /q data\vector_db
    ```
 
 3. **内存不足**

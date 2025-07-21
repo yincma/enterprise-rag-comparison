@@ -9,11 +9,15 @@ import time
 from pathlib import Path
 
 # 本地模块
-from .document_processor import document_processor
-from .vector_store import vector_store
-from .llm_manager import llm_manager
-from .utils.config import config_manager
-from .utils.helpers import measure_performance, Timer
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from document_processor import document_processor
+from vector_store import vector_store
+from llm_manager import llm_manager
+from utils.config import config_manager
+from utils.helpers import measure_performance, Timer
 
 logger = logging.getLogger(__name__)
 

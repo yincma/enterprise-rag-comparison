@@ -10,9 +10,13 @@ from pathlib import Path
 from typing import List, Dict, Any
 
 # 本地模块
-from .rag_pipeline import rag_pipeline
-from .utils.config import config_manager
-from .utils.helpers import format_file_size, get_system_info
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from rag_pipeline import rag_pipeline
+from utils.config import config_manager
+from utils.helpers import format_file_size, get_system_info
 
 # 配置页面
 st.set_page_config(
@@ -20,18 +24,7 @@ st.set_page_config(
     page_icon="🧠",
     layout="wide",
     initial_sidebar_state="expanded",
-    menu_items={
-        'Get Help': 'https://github.com/enterprise-rag/system-1-local-free',
-        'Report a bug': 'https://github.com/enterprise-rag/system-1-local-free/issues',
-        'About': """
-        # 企业RAG知识问答系统
-        
-        基于Ollama和ChromaDB的零成本本地化RAG解决方案
-        
-        **版本**: 1.0.0  
-        **作者**: 企业RAG研发团队
-        """
-    }
+    menu_items=None  # 移除所有菜单项，包括部署图标
 )
 
 # 配置日志
@@ -71,6 +64,119 @@ class RAGApp:
         """应用自定义样式"""
         st.markdown("""
         <style>
+        /* 彻底隐藏所有Deploy相关元素 */
+        .stDeployButton {
+            display: none !important;
+        }
+        
+        [data-testid="stToolbar"] {
+            display: none !important;
+        }
+        
+        [data-testid="stDecoration"] {
+            display: none !important;
+        }
+        
+        .stActionButton {
+            display: none !important;
+        }
+        
+        /* 隐藏应用工具栏 */
+        .stAppToolbar {
+            display: none !important;
+        }
+        
+        [data-testid="stAppViewContainer"] > .main > .block-container > .stToolbar {
+            display: none !important;
+        }
+        
+        /* 隐藏所有工具栏相关元素 */
+        .toolbar {
+            display: none !important;
+        }
+        
+        /* 隐藏右上角的所有按钮 */
+        .stApp > header {
+            display: none !important;
+        }
+        
+        /* 隐藏Streamlit标识和品牌 */
+        .stApp > .stAppHeader {
+            display: none !important;
+        }
+        
+        /* 隐藏右上角菜单按钮 */
+        #MainMenu {
+            visibility: hidden !important;
+            display: none !important;
+        }
+        
+        /* 隐藏页脚 */
+        footer {
+            visibility: hidden !important;
+            display: none !important;
+        }
+        
+        /* 隐藏Streamlit水印 */
+        .viewerBadge_container__1QSob {
+            display: none !important;
+        }
+        
+        /* 隐藏右上角设置按钮 */
+        [data-testid="stSettingsButton"] {
+            display: none !important;
+        }
+        
+        /* 隐藏右上角部署相关的所有元素 */
+        [aria-label*="Deploy"] {
+            display: none !important;
+        }
+        
+        /* 隐藏应用顶部栏 */
+        .stApp > .stAppHeader,
+        .stApp > header,
+        .stAppHeader {
+            display: none !important;
+        }
+        
+        /* 确保主内容占满整个视窗 */
+        .stApp {
+            top: 0 !important;
+            padding-top: 0 !important;
+        }
+        
+        /* 隐藏任何可能的浮动工具栏 */
+        .stFloatingActionButton {
+            display: none !important;
+        }
+        
+        /* 隐藏GitHub图标和Fork按钮 */
+        .stApp [data-testid="stImage"] img[alt="GitHub"] {
+            display: none !important;
+        }
+        
+        /* 隐藏"Made with Streamlit"文字 */
+        .stApp > footer,
+        .stApp [class*="footer"] {
+            display: none !important;
+        }
+        
+        /* 隐藏任何带有"deploy"文字的元素 */
+        *[class*="deploy"],
+        *[id*="deploy"] {
+            display: none !important;
+        }
+        
+        /* 清理页面边距，让内容更紧凑 */
+        .stApp > .main {
+            padding-top: 1rem !important;
+        }
+        
+        /* 隐藏可能的应用图标 */
+        .stApp [data-testid="stAppViewBlockContainer"] header {
+            display: none !important;
+        }
+        
         .main-header {
             text-align: center;
             padding: 2rem 0;
@@ -166,8 +272,22 @@ class RAGApp:
         st.markdown("### 🔧 系统状态")
         
         if st.button("刷新系统状态", key="refresh_health"):
-            with st.spinner("检查系统状态..."):
-                st.session_state.system_health = self.rag.health_check()
+            # 显示Loading界面
+            loading_placeholder = st.empty()
+            with loading_placeholder.container():
+                st.markdown("""
+                <div style="text-align: center; padding: 20px;">
+                    <div style="font-size: 32px; margin-bottom: 15px;">🔄</div>
+                    <div style="font-size: 18px; font-weight: bold; color: #1f77b4;">Loading...</div>
+                    <div style="font-size: 14px; margin-top: 8px; color: #666;">正在检查系统状态...</div>
+                </div>
+                """, unsafe_allow_html=True)
+            
+            # 执行健康检查
+            st.session_state.system_health = self.rag.health_check()
+            
+            # 清除Loading界面
+            loading_placeholder.empty()
         
         if st.session_state.system_health:
             health = st.session_state.system_health
@@ -347,22 +467,127 @@ class RAGApp:
         """渲染文档浏览器"""
         st.markdown("## 📚 文档浏览")
         
-        # 这里可以添加文档浏览功能
-        st.info("文档浏览功能正在开发中...")
+        # 获取知识库统计信息
+        if st.button("刷新文档列表", key="refresh_doc_list"):
+            with st.spinner("正在加载文档列表..."):
+                result = self.rag.get_knowledge_base_stats()
+                if result["success"]:
+                    st.session_state.doc_browser_stats = result["statistics"]
         
-        # 显示当前知识库状态
-        if st.button("查看知识库状态", key="view_kb_status"):
-            result = self.rag.get_knowledge_base_stats()
-            if result["success"]:
-                stats = result["statistics"]
+        # 显示知识库概览
+        if hasattr(st.session_state, 'doc_browser_stats') and st.session_state.doc_browser_stats:
+            stats = st.session_state.doc_browser_stats
+            
+            # 统计信息展示
+            col1, col2, col3, col4 = st.columns(4)
+            with col1:
+                st.metric("📄 文档总数", stats.get("unique_documents", 0))
+            with col2:
+                st.metric("📝 文档块数", stats.get("total_chunks", 0))
+            with col3:
+                st.metric("🗂️ 集合名称", stats.get("collection_name", "N/A"))
+            with col4:
+                if stats.get("total_chunks", 0) > 0:
+                    avg_chunks = stats.get("total_chunks", 0) / max(stats.get("unique_documents", 1), 1)
+                    st.metric("📊 平均块数", f"{avg_chunks:.1f}")
+                else:
+                    st.metric("📊 平均块数", "0")
+            
+            st.markdown("---")
+            
+            # 文件类型分布
+            if "file_types" in stats and stats["file_types"]:
+                st.markdown("### 📂 文件类型分布")
+                file_types = stats["file_types"]
                 
-                col1, col2, col3 = st.columns(3)
+                # 创建文件类型展示
+                type_cols = st.columns(min(len(file_types), 4))
+                for i, (file_type, count) in enumerate(file_types.items()):
+                    with type_cols[i % len(type_cols)]:
+                        # 根据文件类型显示不同图标
+                        icon = "📄"
+                        if file_type.lower() == "pdf":
+                            icon = "📕"
+                        elif file_type.lower() in ["doc", "docx"]:
+                            icon = "📘"
+                        elif file_type.lower() == "txt":
+                            icon = "📄"
+                        elif file_type.lower() == "md":
+                            icon = "📝"
+                        
+                        st.metric(f"{icon} {file_type.upper()}", f"{count} 个")
+                
+                st.markdown("---")
+            
+            # 文档操作区域
+            st.markdown("### 🛠️ 文档管理操作")
+            
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("🔍 检索测试", key="test_retrieval"):
+                    st.session_state.show_retrieval_test = True
+            
+            with col2:
+                if st.button("📊 详细统计", key="detailed_stats"):
+                    st.session_state.show_detailed_stats = True
+            
+            # 检索测试功能
+            if hasattr(st.session_state, 'show_retrieval_test') and st.session_state.show_retrieval_test:
+                st.markdown("#### 🔍 文档检索测试")
+                test_query = st.text_input("输入测试查询：", placeholder="例如：企业管理制度")
+                
+                col1, col2 = st.columns([1, 4])
                 with col1:
-                    st.metric("文档块总数", stats.get("total_chunks", 0))
+                    if st.button("开始检索", key="start_retrieval"):
+                        if test_query:
+                            with st.spinner("正在检索相关文档..."):
+                                # 调用RAG的检索功能
+                                result = self.rag.query_knowledge_base(test_query, include_source_info=True)
+                                if result["success"] and result.get("retrieved_documents"):
+                                    st.success(f"找到 {len(result['retrieved_documents'])} 个相关文档块")
+                                    
+                                    for i, doc in enumerate(result["retrieved_documents"], 1):
+                                        with st.expander(f"文档片段 {i} (相似度: {doc['similarity_score']:.3f})"):
+                                            st.markdown(f"**文件名**: {doc['source']['filename']}")
+                                            st.markdown(f"**内容预览**:")
+                                            st.text(doc['content'][:300] + "..." if len(doc['content']) > 300 else doc['content'])
+                                else:
+                                    st.warning("未找到相关文档")
+                        else:
+                            st.warning("请输入查询内容")
+                
                 with col2:
-                    st.metric("文档数量", stats.get("unique_documents", 0))
-                with col3:
-                    st.metric("集合名称", stats.get("collection_name", "N/A"))
+                    if st.button("关闭测试", key="close_retrieval_test"):
+                        st.session_state.show_retrieval_test = False
+                        st.rerun()
+            
+            # 详细统计信息
+            if hasattr(st.session_state, 'show_detailed_stats') and st.session_state.show_detailed_stats:
+                st.markdown("#### 📊 详细统计信息")
+                
+                # 显示完整的统计信息
+                st.json(stats)
+                
+                if st.button("关闭详细统计", key="close_detailed_stats"):
+                    st.session_state.show_detailed_stats = False
+                    st.rerun()
+            
+        else:
+            # 首次访问或无数据时的界面
+            st.info("💡 点击\"刷新文档列表\"查看已上传的文档")
+            
+            # 显示简单的知识库状态
+            if st.button("查看知识库状态", key="view_kb_status_simple"):
+                with st.spinner("正在检查知识库状态..."):
+                    result = self.rag.get_knowledge_base_stats()
+                    if result["success"]:
+                        stats = result["statistics"]
+                        if stats.get("total_chunks", 0) > 0:
+                            st.success(f"知识库中有 {stats.get('unique_documents', 0)} 个文档，共 {stats.get('total_chunks', 0)} 个文档块")
+                        else:
+                            st.warning("知识库为空，请先上传文档")
+                    else:
+                        st.error("无法获取知识库状态")
     
     def _render_system_monitor(self):
         """渲染系统监控"""
@@ -420,9 +645,49 @@ class RAGApp:
         for info in file_info:
             st.markdown(f"- **{info['name']}** ({info['size']}) - {info['type']}")
         
-        # 处理文件
-        with st.spinner("正在处理文档并添加到知识库..."):
+        # 处理文件 - 添加详细的Loading界面
+        # 创建进度容器
+        progress_container = st.container()
+        
+        with progress_container:
+            # 显示Loading动画
+            st.markdown("""
+            <div style="text-align: center; padding: 30px;">
+                <div style="font-size: 48px; margin-bottom: 20px;">⏳</div>
+                <div style="font-size: 24px; font-weight: bold; color: #1f77b4;">Loading...</div>
+                <div style="font-size: 16px; margin-top: 10px; color: #666;">正在处理文档并添加到知识库，请耐心等待...</div>
+            </div>
+            """, unsafe_allow_html=True)
+            
+            # 进度条
+            progress_bar = st.progress(0)
+            status_text = st.empty()
+            
+            # 更新进度
+            status_text.text("🔄 正在初始化处理流程...")
+            progress_bar.progress(10)
+            time.sleep(0.5)
+            
+            status_text.text("📄 正在提取文档内容...")
+            progress_bar.progress(30)
+            time.sleep(0.5)
+            
+            status_text.text("🧠 正在生成向量嵌入...")
+            progress_bar.progress(60)
+            
+            # 执行实际处理
             result = self.rag.add_documents_to_knowledge_base(file_paths)
+            
+            status_text.text("💾 正在保存到向量数据库...")
+            progress_bar.progress(90)
+            time.sleep(0.5)
+            
+            status_text.text("✅ 处理完成!")
+            progress_bar.progress(100)
+            time.sleep(0.5)
+            
+            # 清除进度显示
+            progress_container.empty()
         
         # 显示结果
         if result["success"]:

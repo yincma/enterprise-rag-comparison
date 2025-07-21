@@ -113,7 +113,7 @@ def split_text_into_chunks(
             return [text] if text.strip() else []
         
         for separator in separators:
-            if separator in text:
+            if separator and separator in text:  # 检查分割符不为空且存在于文本中
                 splits = text.split(separator)
                 result = []
                 current_chunk = ""
@@ -142,7 +142,8 @@ def split_text_into_chunks(
         
         # 如果所有分割符都无法分割，强制按字符分割
         result = []
-        for i in range(0, len(text), chunk_size - chunk_overlap):
+        step = max(1, chunk_size - chunk_overlap)  # 确保步长至少为1
+        for i in range(0, len(text), step):
             chunk = text[i:i + chunk_size]
             if chunk.strip():
                 result.append(chunk)
@@ -152,7 +153,7 @@ def split_text_into_chunks(
     chunks = _split_text(text, separators)
     
     # 过滤掉过短的块
-    min_chunk_length = 50
+    min_chunk_length = 10  # 降低最小块长度要求
     chunks = [chunk for chunk in chunks if len(chunk.strip()) >= min_chunk_length]
     
     return chunks

@@ -13,8 +13,13 @@ import ollama
 from ollama import Client
 
 # 本地模块
-from .utils.config import config_manager
-from .utils.helpers import measure_performance, Timer, retry_on_failure
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from utils.config import config_manager
+from utils.helpers import measure_performance, Timer, retry_on_failure
+from utils.resilience import resilient_function, resilience_manager
 
 logger = logging.getLogger(__name__)
 
@@ -87,7 +92,12 @@ class LLMManager:
             # 不抛出异常，允许系统继续运行
     
     @measure_performance
-    @retry_on_failure(max_retries=3)
+    @resilient_function(
+        service_name="llm_generation",
+        max_attempts=3,
+        enable_circuit_breaker=True,
+        fallback_strategies=[lambda *args, **kwargs: "抱歉，AI服务暂时不可用，请稍后再试。"]
+    )
     def generate_response(
         self, 
         prompt: str, 
@@ -207,6 +217,12 @@ class LLMManager:
             return user_prompt
     
     @measure_performance
+    @resilient_function(
+        service_name="llm_chat",
+        max_attempts=2,
+        enable_circuit_breaker=True,
+        fallback_strategies=[lambda *args, **kwargs: "对话服务暂时不可用，请稍后再试。"]
+    )
     def chat_with_history(
         self, 
         messages: List[Dict[str, str]], 

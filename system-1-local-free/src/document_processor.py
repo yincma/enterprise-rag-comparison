@@ -17,12 +17,16 @@ import markdown
 from bs4 import BeautifulSoup
 
 # 本地模块
-from .utils.config import config_manager
-from .utils.helpers import (
+import sys
+sys.path.append(os.path.dirname(os.path.abspath(__file__)))
+
+from utils.config import config_manager
+from utils.helpers import (
     get_file_hash, get_file_size, format_file_size, 
     clean_text, split_text_into_chunks, validate_file_type,
     measure_performance, Timer
 )
+from utils.memory_optimizer import memory_optimized, batch_processor, memory_optimizer
 
 logger = logging.getLogger(__name__)
 
@@ -94,6 +98,7 @@ class DocumentProcessor:
             logger.info(f"文档处理完成: {file_path.name}, 生成 {len(text_chunks)} 个文本块")
             return result
     
+    @batch_processor(batch_size=5, memory_limit_mb=1024)  # 每批处理5个文档，内存限制1GB
     def process_multiple_documents(self, file_paths: List[Union[str, Path]]) -> List[Dict[str, Any]]:
         """
         批量处理多个文档
@@ -129,6 +134,7 @@ class DocumentProcessor:
         logger.info(f"批量处理完成: 成功 {successful_count} 个, 失败 {failed_count} 个")
         return results
     
+    @memory_optimized(cache_name="document_text_cache", max_size=100, ttl=3600)  # 缓存1小时
     def _extract_text(self, file_path: Path) -> str:
         """
         根据文件类型提取文本内容
@@ -340,6 +346,17 @@ class DocumentProcessor:
         if chunk_overlap is not None:
             self.chunk_overlap = chunk_overlap
             logger.info(f"文本块重叠已更新为: {chunk_overlap}")
+    
+    def __len__(self):
+        """
+        防止意外调用len()时出错，同时提供调试信息
+        """
+        import traceback
+        logger.warning("警告：对DocumentProcessor对象调用了len()函数，这可能是一个错误。")
+        logger.warning("调用堆栈：")
+        for line in traceback.format_stack():
+            logger.warning(line.strip())
+        return 0
 
 
 # 全局文档处理器实例
