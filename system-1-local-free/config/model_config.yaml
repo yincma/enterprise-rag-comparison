@@ -1,0 +1,184 @@
+# 企业级本地RAG系统 - 模型配置
+# 系统一：零成本本地化RAG知识问答系统
+
+# Ollama LLM配置
+llm:
+  # 基础配置
+  provider: "ollama"
+  base_url: "http://localhost:11434"
+  model_name: "llama3.1:8b"              # 默认模型
+  timeout: 300                           # 超时时间（秒）
+  
+  # 生成参数
+  temperature: 0.1                       # 创造性程度 (0-2)
+  top_p: 0.9                            # 核采样概率
+  top_k: 40                             # 候选词数量
+  max_tokens: 2000                      # 最大生成长度
+  repeat_penalty: 1.1                   # 重复惩罚
+  
+  # 停止词
+  stop_sequences: ["Human:", "用户:", "###"]
+  
+  # 系统提示词
+  system_prompt: |
+    你是一个专业的企业知识助手，基于提供的文档内容回答用户问题。
+    请遵循以下原则：
+    1. 只基于提供的上下文信息回答问题
+    2. 如果文档中没有相关信息，请明确说明
+    3. 回答要准确、简洁、有条理
+    4. 使用中文回答
+    5. 可以适当引用文档中的具体内容
+  
+  # 备选模型配置
+  alternative_models:
+    - name: "llama3.1:70b"              # 更强但更慢的模型
+      temperature: 0.1
+      max_tokens: 2000
+    - name: "qwen2.5:7b"                # 中文优化模型
+      temperature: 0.1
+      max_tokens: 2000
+    - name: "mistral:7b"                # 轻量级模型
+      temperature: 0.1
+      max_tokens: 1500
+
+# 文本嵌入模型配置
+embedding:
+  # 基础配置
+  model_name: "all-MiniLM-L6-v2"        # 默认嵌入模型
+  model_kwargs:
+    device: "cpu"                       # 或 "cuda" 如果有GPU
+  encode_kwargs:
+    normalize_embeddings: true
+    batch_size: 32
+  
+  # 向量维度
+  dimension: 384                        # all-MiniLM-L6-v2的维度
+  
+  # 备选嵌入模型
+  alternative_models:
+    - name: "all-mpnet-base-v2"         # 更好的语义理解
+      dimension: 768
+      description: "更好的语义理解，但更慢"
+    - name: "paraphrase-multilingual-MiniLM-L12-v2"
+      dimension: 384
+      description: "多语言支持"
+    - name: "text2vec-large-chinese"    # 中文优化
+      dimension: 1024
+      description: "中文文本优化模型"
+
+# 检索配置
+retrieval:
+  # 检索策略
+  strategy: "similarity"                # similarity, mmr, similarity_score_threshold
+  
+  # 相似性检索参数
+  similarity:
+    search_type: "similarity"
+    k: 5                               # 返回最相似的k个文档
+    score_threshold: 0.7               # 相似度阈值
+  
+  # 最大边际相关性参数
+  mmr:
+    search_type: "mmr"
+    k: 5
+    fetch_k: 20                        # 先获取更多候选
+    lambda_mult: 0.5                   # 多样性权重
+  
+  # 重排序
+  reranking:
+    enable: false
+    model_name: "cross-encoder/ms-marco-MiniLM-L-6-v2"
+    top_k: 10
+
+# 提示词模板
+prompts:
+  # 问答提示词模板
+  qa_template: |
+    基于以下上下文信息，回答用户的问题。如果上下文中没有相关信息，请明确说明无法从提供的文档中找到答案。
+    
+    上下文信息：
+    {context}
+    
+    用户问题：{question}
+    
+    请提供准确、详细的答案：
+  
+  # 多轮对话提示词模板
+  chat_template: |
+    你是一个专业的企业知识助手。以下是历史对话和相关文档上下文。
+    
+    历史对话：
+    {chat_history}
+    
+    相关文档：
+    {context}
+    
+    当前问题：{question}
+    
+    请基于上下文和历史对话提供有帮助的回答：
+  
+  # 总结提示词模板
+  summarize_template: |
+    请对以下文档内容进行简洁的总结：
+    
+    文档内容：
+    {text}
+    
+    总结要点：
+
+# 性能优化配置
+optimization:
+  # 批处理配置
+  batch_processing:
+    enable: true
+    batch_size: 10
+    max_wait_time: 2                   # 秒
+  
+  # 缓存配置
+  model_cache:
+    enable: true
+    max_cache_size: 1000              # 缓存项目数
+    ttl: 3600                         # 缓存生存时间（秒）
+  
+  # GPU配置
+  gpu:
+    enable_if_available: true
+    memory_fraction: 0.8              # GPU内存使用比例
+    allow_growth: true
+
+# 模型质量控制
+quality:
+  # 输出过滤
+  output_filtering:
+    min_length: 10                    # 最小回答长度
+    max_length: 5000                  # 最大回答长度
+    filter_unsafe_content: true
+  
+  # 置信度评估
+  confidence:
+    enable_scoring: true
+    min_confidence: 0.5
+    confidence_threshold: 0.7
+  
+  # 事实核查
+  fact_checking:
+    enable: false
+    cross_reference: true
+
+# 监控和日志
+monitoring:
+  # 模型性能监控
+  track_inference_time: true
+  track_memory_usage: true
+  track_model_accuracy: false
+  
+  # 错误处理
+  max_retries: 3
+  retry_delay: 1                      # 秒
+  fallback_model: "llama3.1:8b"
+
+# A/B测试配置
+ab_testing:
+  enable: false
+  test_percentage: 10                 # 测试用户比例
+  models_to_compare: ["llama3.1:8b", "qwen2.5:7b"]

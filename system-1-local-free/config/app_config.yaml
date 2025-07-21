@@ -1,0 +1,133 @@
+# 企业级本地RAG系统 - 应用配置
+# 系统一：零成本本地化RAG知识问答系统
+
+# 应用基本信息
+app:
+  name: "企业级本地RAG知识问答系统"
+  version: "1.0.0"
+  description: "基于Ollama和ChromaDB的零成本本地化RAG解决方案"
+  author: "企业RAG研发团队"
+  debug: false
+  log_level: "INFO"
+
+# Streamlit界面配置
+ui:
+  page_title: "企业知识问答助手"
+  page_icon: "🧠"
+  layout: "wide"
+  initial_sidebar_state: "expanded"
+  theme:
+    primary_color: "#FF6B6B"
+    background_color: "#FFFFFF"
+    secondary_background_color: "#F0F2F6"
+    text_color: "#262730"
+  show_progress_bar: true
+  max_file_size_mb: 100
+
+# 向量存储配置
+vector_store:
+  type: "chromadb"
+  persist_directory: "./data/vector_db"
+  collection_name: "enterprise_documents"
+  
+  # 文档分块配置
+  chunk_size: 1000              # 文档块大小
+  chunk_overlap: 200            # 文档块重叠
+  separators: ["\n\n", "\n", " ", ""]
+  
+  # 检索配置
+  top_k: 5                      # 检索最相关的文档数量
+  similarity_threshold: 0.7     # 相似度阈值
+  max_marginal_relevance: true  # 启用最大边际相关性
+  diversity_weight: 0.5         # 多样性权重
+
+# 文档处理配置
+document_processing:
+  supported_formats: [".pdf", ".docx", ".txt", ".md"]
+  max_file_size: 104857600      # 100MB
+  
+  # PDF处理配置
+  pdf:
+    extract_images: false
+    preserve_layout: true
+    
+  # Word文档配置
+  docx:
+    extract_tables: true
+    extract_images: false
+    
+  # 文本预处理
+  preprocessing:
+    remove_extra_whitespace: true
+    normalize_unicode: true
+    remove_special_chars: false
+    min_chunk_length: 50
+
+# 缓存配置
+cache:
+  enable_document_cache: true
+  enable_embedding_cache: true
+  enable_response_cache: true
+  cache_directory: "./data/cache"
+  ttl_hours: 24                 # 缓存过期时间（小时）
+
+# 日志配置
+logging:
+  log_directory: "./logs"
+  log_file: "app.log"
+  error_log_file: "error.log"
+  performance_log_file: "performance.log"
+  max_log_size_mb: 10
+  backup_count: 5
+  format: "{time:YYYY-MM-DD HH:mm:ss} | {level} | {name}:{function}:{line} | {message}"
+
+# 性能监控
+monitoring:
+  enable_performance_tracking: true
+  track_memory_usage: true
+  track_response_time: true
+  performance_log_interval: 60  # 秒
+  alert_memory_threshold_mb: 2048
+  alert_response_time_threshold_sec: 10
+
+# 安全配置
+security:
+  enable_authentication: false
+  allowed_file_types: [".pdf", ".docx", ".txt", ".md"]
+  max_upload_size_mb: 100
+  scan_uploaded_files: false
+  
+  # 会话配置
+  session:
+    timeout_minutes: 60
+    max_conversations: 100
+
+# 数据库配置
+database:
+  conversation_history:
+    enable: true
+    max_history_length: 50
+    persist_conversations: true
+    db_file: "./data/conversations.db"
+
+# 备份配置
+backup:
+  enable_auto_backup: false
+  backup_interval_hours: 24
+  backup_directory: "./backups"
+  keep_backups_days: 30
+  
+# 开发配置
+development:
+  hot_reload: true
+  debug_mode: false
+  profiling: false
+  test_mode: false
+
+# 生产环境配置
+production:
+  host: "0.0.0.0"
+  port: 8501
+  workers: 1
+  timeout: 300
+  max_concurrent_users: 10

@@ -1,0 +1,64 @@
+# 企业级本地RAG系统依赖
+# 系统一：零成本本地化RAG知识问答系统
+
+# 核心框架
+streamlit>=1.29.0              # Web前端框架
+langchain>=0.1.0               # RAG框架
+langchain-community>=0.0.10    # LangChain社区组件
+
+# 向量数据库和嵌入
+chromadb>=0.4.22               # 向量数据库
+sentence-transformers>=2.2.2   # 文本嵌入模型
+
+# LLM集成
+ollama>=0.1.7                  # Ollama Python客户端
+httpx>=0.24.0                  # HTTP客户端（Ollama依赖）
+
+# 文档处理
+PyPDF2>=3.0.1                  # PDF文档处理
+python-docx>=1.1.0             # Word文档处理
+markdown>=3.5.1                # Markdown文档处理
+pypdf>=3.17.0                  # 现代PDF处理库
+pdfplumber>=0.10.0             # 高级PDF文本提取
+python-magic>=0.4.27           # 文件类型检测
+
+# 配置管理
+PyYAML>=6.0.1                  # YAML配置文件解析
+python-dotenv>=1.0.0           # 环境变量管理
+
+# 数据处理
+pandas>=2.1.0                  # 数据处理
+numpy>=1.24.0                  # 数值计算
+tiktoken>=0.5.1                # 文本分词器
+
+# UI增强
+streamlit-chat>=0.1.1          # 聊天界面组件
+streamlit-extras>=0.3.5        # Streamlit扩展组件
+streamlit-option-menu>=0.3.6   # 选项菜单组件
+
+# 实用工具
+requests>=2.31.0               # HTTP请求
+tqdm>=4.66.0                   # 进度条
+loguru>=0.7.2                  # 日志管理
+watchdog>=3.0.0                # 文件监控
+typing-extensions>=4.8.0       # 类型注解扩展
+
+# 性能优化
+faiss-cpu>=1.7.4               # 向量相似性搜索（CPU版本）
+# faiss-gpu>=1.7.4             # 向量相似性搜索（GPU版本，可选）
+
+# 开发和测试（开发环境）
+pytest>=7.4.0                  # 测试框架
+pytest-cov>=4.1.0              # 测试覆盖率
+black>=23.9.0                  # 代码格式化
+isort>=5.12.0                  # 导入排序
+flake8>=6.1.0                  # 代码检查
+mypy>=1.6.0                    # 类型检查
+
+# 系统监控
+psutil>=5.9.5                  # 系统资源监控
+memory-profiler>=0.61.0        # 内存性能分析
+
+# 安全和验证
+cryptography>=41.0.0           # 加密库
+bcrypt>=4.1.0                  # 密码哈希

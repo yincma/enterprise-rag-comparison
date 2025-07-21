@@ -1,0 +1,115 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Unit test / coverage reports
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+cover/
+
+# Virtual environments
+.env
+.venv
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# IPython
+profile_default/
+ipython_config.py
+
+# MacOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# RAG系统特定文件
+# 向量数据库
+system-1-local-free/data/vector_db/
+system-2-aws-bedrock/data/vector_db/
+
+# 日志文件
+logs/
+*.log
+
+# 缓存文件
+cache/
+*.cache
+
+# 临时文件
+temp/
+temp_uploads/
+tmp/
+
+# 配置文件中的敏感信息
+*.secret
+*.key
+.env.local
+.env.production
+
+# 模型文件（过大）
+*.bin
+*.onnx
+*.pkl
+
+# AWS凭证
+.aws/
+
+# 备份文件
+backups/
+*.backup
+
+# 测试输出
+test_output/
+test_results/
