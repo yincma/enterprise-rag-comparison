@@ -1,0 +1,77 @@
+[
+  {
+    "text": "This movie was absolutely fantastic! The acting was superb and the plot kept me engaged throughout. The cinematography was breathtaking and the soundtrack complemented every scene perfectly.",
+    "label": "positive",
+    "rating": 9
+  },
+  {
+    "text": "I really enjoyed this film. Great character development and beautiful cinematography. The director did an excellent job bringing the story to life.",
+    "label": "positive",
+    "rating": 8
+  },
+  {
+    "text": "One of the best movies I've seen this year. Highly recommended! The performances were outstanding and the story was compelling from start to finish.",
+    "label": "positive",
+    "rating": 10
+  },
+  {
+    "text": "The movie was disappointing. Poor plot and weak character development. I expected much more given the hype surrounding this film.",
+    "label": "negative",
+    "rating": 3
+  },
+  {
+    "text": "I couldn't get into this film. It was boring and predictable. The pacing was too slow and the dialogue felt forced.",
+    "label": "negative",
+    "rating": 2
+  },
+  {
+    "text": "Not worth the time. The acting was terrible and the story made no sense. I walked out halfway through.",
+    "label": "negative",
+    "rating": 1
+  },
+  {
+    "text": "A masterpiece of cinema! Every scene was beautifully crafted and the emotional depth was incredible. This film will be remembered for years to come.",
+    "label": "positive",
+    "rating": 10
+  },
+  {
+    "text": "Excellent direction and outstanding performances by all actors. The script was well-written and the themes were thought-provoking.",
+    "label": "positive",
+    "rating": 9
+  },
+  {
+    "text": "This movie failed to deliver on its promises. Very underwhelming considering the talented cast and director involved.",
+    "label": "negative",
+    "rating": 4
+  },
+  {
+    "text": "I fell asleep halfway through. Not engaging at all. The story lacked focus and the characters were one-dimensional.",
+    "label": "negative",
+    "rating": 2
+  },
+  {
+    "text": "Incredible visual effects and stunning action sequences. The story was engaging and kept me on the edge of my seat throughout.",
+    "label": "positive",
+    "rating": 8
+  },
+  {
+    "text": "A touching drama that explores human relationships with sensitivity and depth. The performances were natural and believable.",
+    "label": "positive",
+    "rating": 8
+  },
+  {
+    "text": "The worst movie I've seen in years. Terrible writing, poor direction, and wooden acting. Complete waste of money.",
+    "label": "negative",
+    "rating": 1
+  },
+  {
+    "text": "An entertaining comedy with clever humor and great timing. The cast had excellent chemistry and delivered memorable performances.",
+    "label": "positive",
+    "rating": 7
+  },
+  {
+    "text": "Confusing plot and unsatisfying ending. The movie tried to be too clever and ended up being pretentious instead.",
+    "label": "negative",
+    "rating": 3
+  }
+]
