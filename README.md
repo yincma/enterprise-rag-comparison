@@ -48,35 +48,7 @@ graph TD
 ```
 
 #### ☁️ 系统二：AWS云端架构
-```mermaid
-graph TD
-    subgraph "AWS云端环境"
-        A2[用户请求] --> B2[CloudFront CDN]
-        B2 --> C2[API Gateway]
-        C2 --> D2[Lambda函数]
-        D2 --> E2[Bedrock Knowledge Base]
-        D2 --> F2[Nova Pro LLM]
-        
-        G2[S3文档存储] --> E2
-        E2 --> H2[向量检索]
-        F2 --> I2[生成回答]
-        I2 --> D2
-        D2 --> C2
-        C2 --> B2
-        B2 --> J2[React前端]
-        
-        K2[CloudWatch监控] -.-> D2
-        L2[X-Ray跟踪] -.-> D2
-        
-        style A2 fill:#e1f5fe
-        style B2 fill:#e8eaf6
-        style C2 fill:#f3e5f5
-        style D2 fill:#e8f5e8
-        style F2 fill:#fff3e0
-        style G2 fill:#fce4ec
-    end
-```
-
+![AWS RAG Architecture](./system-2-aws-bedrock/docs/AWS%20RAG.drawio.svg)
 </div>
 
 ### 技术对比矩阵
