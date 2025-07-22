@@ -6,8 +6,9 @@ AWS Lambda查询处理器
 import json
 import logging
 import os
+import time
 import boto3
-from typing import Dict, Any
+from typing import Dict, Any, List
 
 # 配置日志
 logger = logging.getLogger()
@@ -15,6 +16,7 @@ logger.setLevel(logging.INFO)
 
 # AWS客户端
 bedrock_runtime = boto3.client('bedrock-runtime', region_name=os.environ.get('AWS_REGION', 'us-east-1'))
+bedrock_agent_runtime = boto3.client('bedrock-agent-runtime', region_name=os.environ.get('AWS_REGION', 'us-east-1'))
 s3_client = boto3.client('s3', region_name=os.environ.get('AWS_REGION', 'us-east-1'))
 
 def lambda_handler(event: Dict[str, Any], context: Any) -> Dict[str, Any]:
@@ -111,53 +113,142 @@ def query_bedrock_knowledge_base(question: str, top_k: int = 5) -> Dict[str, Any
         查询结果
     """
     try:
-        import time
         start_time = time.time()
         
-        # 注意：这是一个简化的示例实现
-        # 实际实现需要配置Bedrock Knowledge Base
+        knowledge_base_id = os.environ.get('KNOWLEDGE_BASE_ID')
+        model_id = os.environ.get('BEDROCK_MODEL_ID', 'amazon.nova-pro-v1:0')
+        
+        if not knowledge_base_id:
+            logger.error("Knowledge Base ID未配置")
+            return _create_fallback_response(question, start_time)
+        
+        logger.info(f"查询Knowledge Base: {knowledge_base_id}, 问题: {question}")
+        
+        # 使用Bedrock Knowledge Base进行检索增强生成
+        response = bedrock_agent_runtime.retrieve_and_generate(
+            input={
+                'text': question
+            },
+            retrieveAndGenerateConfiguration={
+                'type': 'KNOWLEDGE_BASE',
+                'knowledgeBaseConfiguration': {
+                    'knowledgeBaseId': knowledge_base_id,
+                    'modelArn': f'arn:aws:bedrock:{os.environ.get("AWS_REGION", "us-east-1")}::foundation-model/{model_id}',
+                    'retrievalConfiguration': {
+                        'vectorSearchConfiguration': {
+                            'numberOfResults': top_k
+                        }
+                    }
+                }
+            }
+        )
+        
+        processing_time = time.time() - start_time
+        
+        # 提取生成的答案
+        output = response.get('output', {})
+        answer = output.get('text', '抱歉，我无法找到相关信息来回答您的问题。')
+        
+        # 提取来源信息
+        sources = []
+        citations = response.get('citations', [])
+        
+        for citation in citations:
+            retrieved_references = citation.get('retrievedReferences', [])
+            for ref in retrieved_references:
+                content = ref.get('content', {})
+                location = ref.get('location', {})
+                
+                source_info = {
+                    'content': content.get('text', ''),
+                    'document': location.get('s3Location', {}).get('uri', '未知文档'),
+                    'confidence': ref.get('metadata', {}).get('score', 0.0)
+                }
+                sources.append(source_info)
+        
+        result = {
+            "answer": answer,
+            "sources": sources,
+            "processing_time": processing_time,
+            "citations_count": len(citations),
+            "model_used": model_id
+        }
+        
+        logger.info(f"Knowledge Base查询完成，耗时: {processing_time:.2f}秒，来源数量: {len(sources)}")
+        return result
+    
+    except Exception as e:
+        logger.error(f"Knowledge Base查询失败: {str(e)}", exc_info=True)
+        return _create_fallback_response(question, start_time, str(e))
+
+def _create_fallback_response(question: str, start_time: float, error_msg: str = None) -> Dict[str, Any]:
+    """
+    创建备用响应（当Knowledge Base不可用时）
+    """
+    try:
+        logger.info("使用备用模式：直接调用Bedrock模型")
+        
         model_id = os.environ.get('BEDROCK_MODEL_ID', 'amazon.nova-pro-v1:0')
         
         # 构建提示词
-        prompt = f"""基于以下上下文回答用户问题。如果无法找到相关信息，请说明无法回答。
+        prompt = f"""请基于你的知识回答以下问题。如果你不确定答案，请诚实地说明。
 
-用户问题: {question}
+问题: {question}
 
 请提供准确、有用的回答："""
         
         # 调用Bedrock模型
-        response = bedrock_runtime.invoke_model(
-            modelId=model_id,
-            body=json.dumps({
+        if 'nova' in model_id.lower():
+            # Nova模型格式
+            body = {
                 "inputText": prompt,
                 "textGenerationConfig": {
                     "maxTokenCount": 1000,
                     "temperature": 0.1,
                     "topP": 0.9
                 }
-            })
+            }
+        else:
+            # 其他模型格式
+            body = {
+                "prompt": prompt,
+                "max_tokens": 1000,
+                "temperature": 0.1,
+                "top_p": 0.9
+            }
+        
+        response = bedrock_runtime.invoke_model(
+            modelId=model_id,
+            body=json.dumps(body)
         )
         
-        # 解析响应
         response_body = json.loads(response['body'].read())
+        
+        # 解析响应（根据模型类型）
+        if 'nova' in model_id.lower():
+            answer = response_body.get('results', [{}])[0].get('outputText', '抱歉，我无法回答您的问题。')
+        else:
+            answer = response_body.get('completion', '抱歉，我无法回答您的问题。')
         
         processing_time = time.time() - start_time
         
-        result = {
-            "answer": response_body.get('results', [{}])[0].get('outputText', '抱歉，我无法回答您的问题。'),
-            "sources": [],  # 需要实际的知识库检索来填充
-            "processing_time": processing_time
-        }
-        
-        logger.info(f"Bedrock查询完成，耗时: {processing_time:.2f}秒")
-        return result
-    
-    except Exception as e:
-        logger.error(f"Bedrock查询失败: {str(e)}")
         return {
-            "answer": "抱歉，查询过程中发生错误，请稍后再试。",
+            "answer": f"{answer}\n\n⚠️ 注意：此回答基于模型的一般知识，未使用企业知识库。" + (f" 错误信息: {error_msg}" if error_msg else ""),
             "sources": [],
-            "processing_time": 0
+            "processing_time": processing_time,
+            "citations_count": 0,
+            "model_used": model_id,
+            "fallback_mode": True
+        }
+    
+    except Exception as fallback_error:
+        logger.error(f"备用模式也失败了: {str(fallback_error)}")
+        return {
+            "answer": "抱歉，服务暂时不可用，请稍后再试。",
+            "sources": [],
+            "processing_time": time.time() - start_time,
+            "citations_count": 0,
+            "error": True
         }
 
 def handle_health_check() -> Dict[str, Any]:
@@ -170,12 +261,14 @@ def handle_health_check() -> Dict[str, Any]:
     health_status = {
         "status": "healthy",
         "service": "RAG Query Handler",
-        "version": "1.0.0",
+        "version": "2.0.0",
         "timestamp": str(int(time.time())),
         "environment": os.environ.get('ENVIRONMENT', 'unknown'),
         "region": os.environ.get('AWS_REGION', 'us-east-1'),
+        "knowledge_base_id": os.environ.get('KNOWLEDGE_BASE_ID', 'not_configured'),
         "checks": {
             "bedrock": check_bedrock_availability(),
+            "knowledge_base": check_knowledge_base_availability(),
             "s3": check_s3_availability()
         }
     }
@@ -203,6 +296,34 @@ def check_bedrock_availability() -> Dict[str, Any]:
         return {
             "status": "error",
             "message": f"Bedrock服务不可用: {str(e)}"
+        }
+
+def check_knowledge_base_availability() -> Dict[str, Any]:
+    """检查Knowledge Base可用性"""
+    try:
+        knowledge_base_id = os.environ.get('KNOWLEDGE_BASE_ID')
+        if not knowledge_base_id:
+            return {
+                "status": "warning",
+                "message": "Knowledge Base ID未配置"
+            }
+        
+        # 尝试获取Knowledge Base信息
+        bedrock_agent = boto3.client('bedrock-agent', region_name=os.environ.get('AWS_REGION', 'us-east-1'))
+        kb_info = bedrock_agent.get_knowledge_base(knowledgeBaseId=knowledge_base_id)
+        
+        status = kb_info.get('knowledgeBase', {}).get('status', 'UNKNOWN')
+        
+        return {
+            "status": "ok" if status == "ACTIVE" else "warning",
+            "message": f"Knowledge Base状态: {status}",
+            "knowledge_base_id": knowledge_base_id,
+            "kb_status": status
+        }
+    except Exception as e:
+        return {
+            "status": "error",
+            "message": f"Knowledge Base不可用: {str(e)}"
         }
 
 def check_s3_availability() -> Dict[str, Any]:

@@ -245,3 +245,67 @@ variable "local_development" {
   type        = bool
   default     = false
 }
+
+# Lambda@Edge配置
+variable "enable_lambda_edge" {
+  description = "是否启用Lambda@Edge功能"
+  type        = bool
+  default     = false
+}
+
+# Lambda预留并发配置
+variable "enable_provisioned_concurrency" {
+  description = "是否启用Lambda预留并发"
+  type        = bool
+  default     = false
+}
+
+variable "provisioned_concurrency_count" {
+  description = "预留并发数量"
+  type        = number
+  default     = 5
+  
+  validation {
+    condition = var.provisioned_concurrency_count >= 1 && var.provisioned_concurrency_count <= 100
+    error_message = "预留并发数量必须在1-100之间。"
+  }
+}
+
+# 前端部署配置
+variable "frontend_domain_name" {
+  description = "前端自定义域名（可选）"
+  type        = string
+  default     = ""
+}
+
+variable "ssl_certificate_arn" {
+  description = "SSL证书ARN（用于自定义域名）"
+  type        = string
+  default     = ""
+}
+
+# 部署配置
+variable "enable_blue_green_deployment" {
+  description = "是否启用蓝绿部署"
+  type        = bool
+  default     = false
+}
+
+variable "enable_canary_deployment" {
+  description = "是否启用金丝雀部署"
+  type        = bool
+  default     = false
+}
+
+# 数据源同步配置
+variable "auto_sync_knowledge_base" {
+  description = "是否自动同步知识库"
+  type        = bool
+  default     = true
+}
+
+variable "sync_schedule_expression" {
+  description = "同步计划表达式（cron格式）"
+  type        = string
+  default     = "rate(1 hour)"
+}
